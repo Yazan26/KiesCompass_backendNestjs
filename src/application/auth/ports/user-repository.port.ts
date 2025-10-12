@@ -1,4 +1,4 @@
-import { UserEntity } from '../../domain/entities/user.entity';
+import { UserEntity } from '../../../core/auth/entities/user.entity';
 
 /**
  * Application Layer - Repository Port (Interface)

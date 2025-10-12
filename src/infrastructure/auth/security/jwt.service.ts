@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
-import type { IJwtService } from '../../application/ports/jwt-service.port';
+import type { IJwtService } from '../../../application/auth/ports/jwt-service.port';
 
 /**
  * Infrastructure Layer - JWT Service Implementation

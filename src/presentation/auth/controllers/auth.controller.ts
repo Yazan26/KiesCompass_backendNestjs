@@ -1,14 +1,14 @@
 import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { RegisterUseCase } from '../../application/use-cases/auth/register.use-case';
-import { LoginUseCase } from '../../application/use-cases/auth/login.use-case';
-import { GetUserProfileUseCase } from '../../application/use-cases/auth/get-user-profile.use-case';
+import { RegisterUseCase } from '../../../application/auth/use-cases/register.use-case';
+import { LoginUseCase } from '../../../application/auth/use-cases/login.use-case';
+import { GetUserProfileUseCase } from '../../../application/auth/use-cases/get-user-profile.use-case';
 import {
   RegisterDto,
   LoginDto,
   AuthResponseDto,
   UserResponseDto,
-} from '../../application/dtos/auth.dto';
+} from '../../../application/auth/dtos/auth.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 

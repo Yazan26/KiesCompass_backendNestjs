@@ -5,8 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { BcryptPasswordService } from './bcrypt-password.service';
 import { JwtServiceAdapter } from './jwt.service';
 import { JwtStrategy } from './jwt.strategy';
-import { PASSWORD_SERVICE } from '../../application/ports/password-service.port';
-import { JWT_SERVICE } from '../../application/ports/jwt-service.port';
+import { PASSWORD_SERVICE } from '../../../application/auth/ports/password-service.port';
+import { JWT_SERVICE } from '../../../application/auth/ports/jwt-service.port';
 
 /**
  * Infrastructure Layer - Security Module

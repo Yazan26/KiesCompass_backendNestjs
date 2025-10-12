@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import type { IPasswordService } from '../../application/ports/password-service.port';
+import type { IPasswordService } from '../../../application/auth/ports/password-service.port';
 
 /**
  * Infrastructure Layer - Bcrypt Password Service Implementation

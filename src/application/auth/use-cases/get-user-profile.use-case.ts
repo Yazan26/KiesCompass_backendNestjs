@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { IUserRepository } from '../../ports/user-repository.port';
-import { USER_REPOSITORY } from '../../ports/user-repository.port';
-import { UserResponseDto } from '../../dtos/auth.dto';
+import type { IUserRepository } from '../ports/user-repository.port';
+import { USER_REPOSITORY } from '../ports/user-repository.port';
+import { UserResponseDto } from '../dtos/auth.dto';
 
 /**
  * Application Layer - Get User Profile Use Case
