@@ -27,6 +27,11 @@ async function bootstrap() {
     methods: ['GET','POST','PUT','DELETE'],
     allowedHeaders: ['Content-Type','Authorization'],
   });
+
+  app.use('/api-json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(document);
+});
   
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
@@ -34,6 +39,6 @@ async function bootstrap() {
 
 
 
-  await app.listen(3001);
+  await app.listen(process.env.PORT || 3001);
 }
 bootstrap();
