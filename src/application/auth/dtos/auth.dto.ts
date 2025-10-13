@@ -16,6 +16,7 @@ export class RegisterDto {
 
   @ApiProperty({ example: 'password123' })
   @MinLength(10, { message: 'Password must be at least 10 characters long' })
+  @Matches(/^(?=.*[!@#$%^&*(),.?":{}|<>]).+$/, { message: 'Password must contain at least one symbol' })
   password: string;
 }
 
@@ -25,12 +26,11 @@ export class LoginDto {
   username: string;
 
   @ApiProperty({ example: 'password123' })
-  @MinLength(10)
   password: string;
 }
 
 export class AuthResponseDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
+  @ApiProperty({ example: 'eyJhbGciOiHSDFSADFuyInR5cCI6IkpXVCJ9...' })
   access_token: string;
 }
 
