@@ -34,7 +34,16 @@ async function bootstrap() {
 });
   
   app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({ 
+      whitelist: true, 
+      forbidNonWhitelisted: true,
+      transform: true, // Enable automatic transformation
+      transformOptions: {
+        enableImplicitConversion: true, // Auto-convert primitive types
+      },
+    })
+  );
 
 
 

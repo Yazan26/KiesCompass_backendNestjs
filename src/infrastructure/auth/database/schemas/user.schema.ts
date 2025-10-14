@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 /**
  * Infrastructure Layer - MongoDB User Schema
@@ -20,6 +20,9 @@ export class UserDocument extends Document {
   @Prop({ required: true, default: 'student' })
   role: 'student' | 'admin';
 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'VkmDocument' }], default: [] })
+  favoriteVkmIds: Types.ObjectId[];
+
   @Prop()
   createdAt: Date;
 
@@ -31,3 +34,6 @@ export const UserSchema = SchemaFactory.createForClass(UserDocument);
 
 // Add case-insensitive unique index for email
 UserSchema.index({ email: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
+
+// Add case-insensitive unique index for username
+UserSchema.index({ username: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
