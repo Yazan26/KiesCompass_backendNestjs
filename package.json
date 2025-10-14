@@ -16,7 +16,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migrate:vkm": "ts-node -r tsconfig-paths/register src/scripts/migrate-vkm.ts",
+    "rebuild-indexes": "ts-node -r tsconfig-paths/register src/scripts/rebuild-indexes.ts"
   },
   "engines": {
     "npm": ">=10.0.0",

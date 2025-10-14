@@ -34,6 +34,17 @@ export interface IUserRepository {
    * Check if a user exists by email
    */
   existsByEmail(email: string): Promise<boolean>;
+
+  /**
+   * Toggle a VKM as favorite for a user
+   * Returns true if favorited, false if unfavorited
+   */
+  toggleFavoriteVkm(userId: string, vkmId: string): Promise<boolean>;
+
+  /**
+   * Get all favorite VKM IDs for a user
+   */
+  getFavoriteVkmIds(userId: string): Promise<string[]>;
 }
 
 export const USER_REPOSITORY = Symbol('IUserRepository');

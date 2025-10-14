@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from '../application/auth/auth.module';
+import { VkmModule } from '../application/vkm/vkm.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthModule } from '../application/auth/auth.module';
       }),
     }),
     AuthModule,
+    VkmModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -17,14 +17,22 @@ export class MongoUserRepository implements IUserRepository {
   ) {}
 
   async findByUsername(username: string): Promise<UserEntity | null> {
-    const userDoc = await this.userModel.findOne({ username }).lean().exec();
+    const userDoc = await this.userModel
+      .findOne({ username })
+      .collation({ locale: 'en', strength: 2 })
+      .lean()
+      .exec();
     if (!userDoc) return null;
 
     return this.mapToEntity(userDoc);
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const userDoc = await this.userModel.findOne({ email: email.toLowerCase() }).lean().exec();
+    const userDoc = await this.userModel
+      .findOne({ email: email.toLowerCase() })
+      .collation({ locale: 'en', strength: 2 })
+      .lean()
+      .exec();
     if (!userDoc) return null;
 
     return this.mapToEntity(userDoc);
@@ -43,13 +51,51 @@ export class MongoUserRepository implements IUserRepository {
   }
 
   async existsByUsername(username: string): Promise<boolean> {
-    const count = await this.userModel.countDocuments({ username }).exec();
+    const count = await this.userModel
+      .countDocuments({ username })
+      .collation({ locale: 'en', strength: 2 })
+      .exec();
     return count > 0;
   }
 
   async existsByEmail(email: string): Promise<boolean> {
-    const count = await this.userModel.countDocuments({ email: email.toLowerCase() }).exec();
+    const count = await this.userModel
+      .countDocuments({ email: email.toLowerCase() })
+      .collation({ locale: 'en', strength: 2 })
+      .exec();
     return count > 0;
+  }
+
+  async toggleFavoriteVkm(userId: string, vkmId: string): Promise<boolean> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const vkmObjectId = vkmId as any; // MongoDB will handle the conversion
+    const favoriteIndex = user.favoriteVkmIds.findIndex(
+      (id) => id.toString() === vkmId
+    );
+
+    if (favoriteIndex > -1) {
+      // Remove from favorites
+      user.favoriteVkmIds.splice(favoriteIndex, 1);
+      await user.save();
+      return false;
+    } else {
+      // Add to favorites
+      user.favoriteVkmIds.push(vkmObjectId);
+      await user.save();
+      return true;
+    }
+  }
+
+  async getFavoriteVkmIds(userId: string): Promise<string[]> {
+    const user = await this.userModel.findById(userId).lean().exec();
+    if (!user) {
+      return [];
+    }
+    return user.favoriteVkmIds?.map((id) => id.toString()) || [];
   }
 
   /**
