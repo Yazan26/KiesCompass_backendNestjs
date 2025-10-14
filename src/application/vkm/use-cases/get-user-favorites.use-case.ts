@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import type { IVkmRepository } from '../ports/vkm-repository.port';
 import type { IUserRepository } from '../../auth/ports/user-repository.port';
 import type { VkmEntity } from '../../../core/vkm/entities/vkm.entity';
@@ -15,6 +16,9 @@ export class GetUserFavoritesUseCase {
   ) {}
 
   async execute(userId: string): Promise<VkmEntity[]> {
+    if (!userId) {
+      throw new BadRequestException('Missing userId for GetUserFavoritesUseCase');
+    }
     const favoriteIds = await this.userRepository.getFavoriteVkmIds(userId);
     if (!favoriteIds || favoriteIds.length === 0) return [];
 

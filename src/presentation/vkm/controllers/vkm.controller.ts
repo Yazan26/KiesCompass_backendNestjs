@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Logger, InternalServerErrorException } from '@nestjs/common';
 import { AdminGuard } from '../../auth/guards/admin.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { CreateVkmDto, UpdateVkmDto, VkmResponseDto, GetAllVkmsQueryDto } from '../../../application/vkm/dtos/vkm.dto';
@@ -89,28 +90,7 @@ export class VkmController {
    * GET /vkm/:id - Get a single VKM by ID
    * Public or authenticated users
    */
-  @Get(':id')
-  @ApiOperation({ summary: 'Get VKM by ID', description: 'Retrieve a specific VKM module by its ID' })
-  @ApiParam({ name: 'id', example: '68ed766ca5d5dc8235d7ce66', description: 'VKM unique identifier' })
-  @ApiResponse({ status: 200, description: 'VKM retrieved successfully', type: VkmResponseDto })
-  @ApiResponse({ status: 404, description: 'VKM not found' })
-  async getVkmById(
-    @Param('id') id: string,
-    @CurrentUser() user?: any,
-  ): Promise<VkmResponseDto> {
-    const vkm = await this.getVkmByIdUseCase.execute(id);
-
-    let isFavorited = false;
-    if (user) {
-      const favoriteIds = await this.userRepository.getFavoriteVkmIds(user.userId);
-      isFavorited = favoriteIds.includes(vkm.id);
-    }
-
-    return {
-      ...vkm.toPublicObject(),
-      isFavorited,
-    };
-  }
+  // NOTE: moved getVkmById below static routes to avoid route conflicts with '/favorites'
 
   /**
    * GET /vkm/recommendations - Get personalized VKM recommendations
@@ -150,12 +130,17 @@ export class VkmController {
   @ApiResponse({ status: 200, description: 'Favorite VKMs retrieved successfully', type: [VkmResponseDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized - authentication required' })
   async getMyFavorites(@CurrentUser() user: any): Promise<VkmResponseDto[]> {
-    const vkms = await this.getUserFavoritesUseCase.execute(user.userId);
-    // All returned vkms are favorited
-    return vkms.map((vkm) => ({
-      ...vkm.toPublicObject(),
-      isFavorited: true,
-    }));
+    try {
+      const vkms = await this.getUserFavoritesUseCase.execute(user.userId);
+      // All returned vkms are favorited
+      return vkms.map((vkm) => ({
+        ...vkm.toPublicObject(),
+        isFavorited: true,
+      }));
+    } catch (err: any) {
+      Logger.error('Failed to get user favorites', err?.stack || err?.message || err, 'VkmController');
+      throw new InternalServerErrorException('Failed to retrieve favorites');
+    }
   }
 
   /**
@@ -260,5 +245,32 @@ export class VkmController {
   async deactivateVkm(@Param('id') id: string): Promise<VkmResponseDto> {
     const vkm = await this.deactivateVkmUseCase.execute(id);
     return vkm.toPublicObject();
+  }
+
+  /**
+   * GET /vkm/:id - Get a single VKM by ID
+   * Placed after static routes to avoid conflicts with static paths like '/favorites'
+   */
+  @Get(':id')
+  @ApiOperation({ summary: 'Get VKM by ID', description: 'Retrieve a specific VKM module by its ID' })
+  @ApiParam({ name: 'id', example: '68ed766ca5d5dc8235d7ce66', description: 'VKM unique identifier' })
+  @ApiResponse({ status: 200, description: 'VKM retrieved successfully', type: VkmResponseDto })
+  @ApiResponse({ status: 404, description: 'VKM not found' })
+  async getVkmById(
+    @Param('id') id: string,
+    @CurrentUser() user?: any,
+  ): Promise<VkmResponseDto> {
+    const vkm = await this.getVkmByIdUseCase.execute(id);
+
+    let isFavorited = false;
+    if (user) {
+      const favoriteIds = await this.userRepository.getFavoriteVkmIds(user.userId);
+      isFavorited = favoriteIds.includes(vkm.id);
+    }
+
+    return {
+      ...vkm.toPublicObject(),
+      isFavorited,
+    };
   }
 }
