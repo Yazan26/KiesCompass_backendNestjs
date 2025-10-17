@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { USER_REPOSITORY } from '../application/ports/user-repository.port';
 import type { IUserRepository } from '../application/ports/user-repository.port';
@@ -11,6 +12,8 @@ import {
   LoginDto,
   AuthResponseDto,
   UserResponseDto,
+  AdminUserResponseDto,
+  UpdateUserDto,
 } from '../util/dtos/auth.dto';
 import { PASSWORD_SERVICE } from '../application/ports/password-service.port';
 import type { IPasswordService } from '../application/ports/password-service.port';
@@ -34,6 +37,23 @@ export class AuthService {
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  /**
+   * DTO-friendly representation with admin details
+   */
+  private static toAdminUserResponse(user: LeanUser): AdminUserResponseDto {
+    return {
+      id: user._id.toString(),
+      username: user.username,
+      email: user.email,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      role: user.role,
+      favoriteVkmIds: user.favoriteVkmIds?.map((id: any) => id.toString()) || [],
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -87,6 +107,7 @@ export class AuthService {
       sub: user._id.toString(),
       username: user.username,
       email: user.email,
+      role: user.role,
     };
     const access_token = await this.jwtService.generateToken(payload);
 
@@ -95,17 +116,6 @@ export class AuthService {
 
   async findByFirstandLastname(firstname: string, lastname: string): Promise<any | null> {
     return this.userDao.findByFirstandLastname(firstname, lastname);
-  }
-
-  /**
-   * Admin-only: Search users by query across username, email, firstname, lastname.
-   */
-  async searchUsers(query?: string, page = 1, limit = 20): Promise<{ results: UserResponseDto[]; total: number }> {
-    const { results, total } = await this.userDao.search(query, page, limit);
-    return {
-      results: results.map((u: any) => AuthService.toUserResponse(u as LeanUser)),
-      total,
-    };
   }
 
   /**
@@ -156,6 +166,75 @@ export class AuthService {
       throw new ConflictException('Email already in use');
     }
   }
+
+  /**
+   * ADMIN: Get all users with optional filtering
+   */
+  async getAllUsers(filters?: {
+    username?: string;
+    email?: string;
+    firstname?: string;
+    lastname?: string;
+    role?: string;
+  }): Promise<AdminUserResponseDto[]> {
+    const users = await this.userDao.findAll(filters);
+    return users.map((user) => AuthService.toAdminUserResponse(user as LeanUser));
+  }
+
+  /**
+   * ADMIN: Get user by ID with full details
+   */
+  async getUserById(userId: string): Promise<AdminUserResponseDto> {
+    const user = await this.userDao.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return AuthService.toAdminUserResponse(user as LeanUser);
+  }
+
+  /**
+   * ADMIN: Update user
+   */
+  async updateUser(userId: string, dto: UpdateUserDto): Promise<AdminUserResponseDto> {
+    // Check if user exists
+    const existingUser = await this.userDao.findById(userId);
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check for unique constraints if username or email is being updated
+    if (dto.username && dto.username !== existingUser.username) {
+      const usernameExists = await this.userDao.existsByUsername(dto.username);
+      if (usernameExists) {
+        throw new ConflictException('Username already in use');
+      }
+    }
+
+    if (dto.email && dto.email.toLowerCase() !== existingUser.email.toLowerCase()) {
+      const emailExists = await this.userDao.existsByEmail(dto.email);
+      if (emailExists) {
+        throw new ConflictException('Email already in use');
+      }
+    }
+
+    const updatedUser = await this.userDao.update(userId, dto);
+    if (!updatedUser) {
+      throw new NotFoundException('User not found after update');
+    }
+
+    return AuthService.toAdminUserResponse(updatedUser as LeanUser);
+  }
+
+  /**
+   * ADMIN: Delete user
+   */
+  async deleteUser(userId: string): Promise<{ message: string }> {
+    const deleted = await this.userDao.delete(userId);
+    if (!deleted) {
+      throw new NotFoundException('User not found');
+    }
+    return { message: 'User successfully deleted' };
+  }
 }
 
 type LeanUser = {
@@ -167,5 +246,6 @@ type LeanUser = {
   passwordHash: string;
   createdAt: Date;
   updatedAt: Date;
-  role: string;
+  role: 'student' | 'admin';
+  favoriteVkmIds?: any[];
 };

@@ -32,9 +32,15 @@ export class VkmService {
     userId?: string,
   ): Promise<VkmResponseDto[]> {
     const vkms = (await this.vkmDao.findAll({
+      name: query.name,
       location: query.location,
       level: query.level,
       studyCredit: query.studyCredit,
+      shortDescription: query.shortDescription,
+      description: query.description,
+      content: query.content,
+      learningOutcomes: query.learningOutcomes,
+      contactId: query.contactId,
       isActive: query.isActive,
     })) as LeanVkm[];
 

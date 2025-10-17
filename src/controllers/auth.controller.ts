@@ -1,10 +1,11 @@
-import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
-import { Query } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseGuards, Put, Delete, Param, Query } from '@nestjs/common';
+
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import {
@@ -12,6 +13,8 @@ import {
   LoginDto,
   AuthResponseDto,
   UserResponseDto,
+  AdminUserResponseDto,
+  UpdateUserDto,
 } from '../util/dtos/auth.dto';
 import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
 import { AdminGuard } from '../middleware/admin.guard';
@@ -71,17 +74,96 @@ export class AuthController {
     return this.authService.getUserProfile(user.userId);
   }
 
-  @Get('search')
+  // ==================== ADMIN ENDPOINTS ====================
+
+  @Get('/users')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin: search users' })
-  async searchUsers(
-    @Query('q') q?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
-    const p = page ? Math.max(1, parseInt(page, 10) || 1) : 1;
-    const l = limit ? Math.max(1, parseInt(limit, 10) || 20) : 20;
-    return this.authService.searchUsers(q, p, l);
+  @ApiOperation({ summary: 'Admin: Get all users with optional filtering' })
+  @ApiQuery({ name: 'username', required: false, description: 'Filter by username (partial match)' })
+  @ApiQuery({ name: 'email', required: false, description: 'Filter by email (partial match)' })
+  @ApiQuery({ name: 'firstname', required: false, description: 'Filter by firstname (partial match)' })
+  @ApiQuery({ name: 'lastname', required: false, description: 'Filter by lastname (partial match)' })
+  @ApiQuery({ name: 'role', required: false, enum: ['student', 'admin'], description: 'Filter by role' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users retrieved',
+    type: [AdminUserResponseDto],
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
+  async getAllUsers(
+    @Query('username') username?: string,
+    @Query('email') email?: string,
+    @Query('firstname') firstname?: string,
+    @Query('lastname') lastname?: string,
+    @Query('role') role?: string,
+  ): Promise<AdminUserResponseDto[]> {
+    const filters = {
+      ...(username && { username }),
+      ...(email && { email }),
+      ...(firstname && { firstname }),
+      ...(lastname && { lastname }),
+      ...(role && { role }),
+    };
+    
+    return this.authService.getAllUsers(Object.keys(filters).length > 0 ? filters : undefined);
+  }
+
+  @Get('/users/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: Get user by ID with full details' })
+  @ApiResponse({
+    status: 200,
+    description: 'User details retrieved',
+    type: AdminUserResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserById(@Param('id') id: string): Promise<AdminUserResponseDto> {
+    return this.authService.getUserById(id);
+  }
+
+  @Put('/users/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: Update user details' })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully updated',
+    type: AdminUserResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 409, description: 'Username or email already in use' })
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<AdminUserResponseDto> {
+    return this.authService.updateUser(id, dto);
+  }
+
+  @Delete('/users/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: Delete user' })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully deleted',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'User successfully deleted' },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async deleteUser(@Param('id') id: string): Promise<{ message: string }> {
+    return this.authService.deleteUser(id);
   }
 }

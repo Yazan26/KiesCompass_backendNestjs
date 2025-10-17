@@ -4,9 +4,15 @@ import { Model } from 'mongoose';
 import { VkmDocument } from '../../db/schemas/vkm.schema';
 
 export interface VkmFilters {
+  name?: string;
   location?: string;
   level?: string;
   studyCredit?: number;
+  shortDescription?: string;
+  description?: string;
+  content?: string;
+  learningOutcomes?: string;
+  contactId?: string;
   isActive?: boolean;
 }
 
@@ -47,11 +53,38 @@ export class VkmDao {
     const query: any = {};
 
     if (filters) {
-      if (filters.location) query.location = filters.location;
-      if (filters.level) query.level = filters.level;
-      if (filters.studyCredit !== undefined)
-        query.studycredit = filters.studyCredit;
+      // Partial text search with case-insensitive regex
+      if (filters.name) {
+        query.name = new RegExp(filters.name, 'i');
+      }
+      if (filters.location) {
+        query.location = new RegExp(filters.location, 'i');
+      }
+      if (filters.shortDescription) {
+        query.shortdescription = new RegExp(filters.shortDescription, 'i');
+      }
+      if (filters.description) {
+        query.description = new RegExp(filters.description, 'i');
+      }
+      if (filters.content) {
+        query.content = new RegExp(filters.content, 'i');
+      }
+      if (filters.learningOutcomes) {
+        query.learningoutcomes = new RegExp(filters.learningOutcomes, 'i');
+      }
 
+      // Exact match filters
+      if (filters.level) {
+        query.level = filters.level;
+      }
+      if (filters.studyCredit !== undefined) {
+        query.studycredit = filters.studyCredit;
+      }
+      if (filters.contactId) {
+        query.contact_id = filters.contactId;
+      }
+
+      // Active status filter
       if (filters.isActive !== undefined) {
         query.$or = [
           { isActive: filters.isActive },
