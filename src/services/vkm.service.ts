@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { VkmDao } from '../dao/vkm.dao';
-import { UserDao } from '../dao/user.dao';
+import { Inject } from '@nestjs/common';
+import { VkmDao } from '../infrastructure/dao/vkm.dao';
+import { UserDao } from '../infrastructure/dao/user.dao';
+import { VKM_REPOSITORY } from '../application/ports/vkm-repository.port';
+import type { IVkmRepository } from '../application/ports/vkm-repository.port';
+import { USER_REPOSITORY } from '../application/ports/user-repository.port';
+import type { IUserRepository } from '../application/ports/user-repository.port';
 import { 
   CreateVkmDto, 
   UpdateVkmDto, 
@@ -16,8 +21,10 @@ import {
 @Injectable()
 export class VkmService {
   constructor(
-    private readonly vkmDao: VkmDao,
-    private readonly userDao: UserDao,
+    @Inject(VKM_REPOSITORY)
+    private readonly vkmDao: IVkmRepository,
+    @Inject(USER_REPOSITORY)
+    private readonly userDao: IUserRepository,
   ) {}
 
   /**
@@ -147,8 +154,8 @@ export class VkmService {
    * Get VKM recommendations for a user
    */
   async getRecommendations(userId: string, limit: number = 10): Promise<VkmResponseDto[]> {
-    const vkms = await this.vkmDao.getRecommendations(limit);
-    const favoriteIds = await this.userDao.getFavoriteVkmIds(userId);
+  const vkms = await this.vkmDao.getRecommendations(userId || '', limit);
+  const favoriteIds = await this.userDao.getFavoriteVkmIds(userId);
     
     return vkms.map((vkm) => this.mapToResponseDto(vkm, favoriteIds));
   }

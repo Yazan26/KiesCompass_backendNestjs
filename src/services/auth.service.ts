@@ -1,8 +1,15 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { UserDao } from '../dao/user.dao';
+import { UserDao } from '../infrastructure/dao/user.dao';
+import { Inject } from '@nestjs/common';
+import { USER_REPOSITORY } from '../application/ports/user-repository.port';
+import type { IUserRepository } from '../application/ports/user-repository.port';
 import { RegisterDto, LoginDto, AuthResponseDto, UserResponseDto } from '../util/dtos/auth.dto';
 import { BcryptPasswordService } from '../util/security/bcrypt-password.service';
 import { JwtServiceAdapter } from '../util/security/jwt.service';
+import { PASSWORD_SERVICE } from '../application/ports/password-service.port';
+import type { IPasswordService } from '../application/ports/password-service.port';
+import { JWT_SERVICE } from '../application/ports/jwt-service.port';
+import type { IJwtService } from '../application/ports/jwt-service.port';
 
 /**
  * Service Layer - Auth Service
@@ -12,9 +19,12 @@ import { JwtServiceAdapter } from '../util/security/jwt.service';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userDao: UserDao,
-    private readonly passwordService: BcryptPasswordService,
-    private readonly jwtService: JwtServiceAdapter,
+    @Inject(USER_REPOSITORY)
+    private readonly userDao: IUserRepository,
+    @Inject(PASSWORD_SERVICE)
+    private readonly passwordService: IPasswordService | BcryptPasswordService,
+    @Inject(JWT_SERVICE)
+    private readonly jwtService: IJwtService | JwtServiceAdapter,
   ) {}
 
   /**

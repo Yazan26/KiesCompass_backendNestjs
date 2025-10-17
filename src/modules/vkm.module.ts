@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../db/database.module';
 import { VkmController } from '../controllers/vkm.controller';
 import { VkmService } from '../services/vkm.service';
-import { VkmDao } from '../dao/vkm.dao';
-import { UserDao } from '../dao/user.dao';
+import { VkmDao } from '../infrastructure/dao/vkm.dao';
+import { UserDao } from '../infrastructure/dao/user.dao';
+import { VKM_REPOSITORY } from '../application/ports/vkm-repository.port';
+import { USER_REPOSITORY } from '../application/ports/user-repository.port';
 
 /**
  * VKM Module - Handles VKM features
@@ -11,7 +13,13 @@ import { UserDao } from '../dao/user.dao';
 @Module({
   imports: [DatabaseModule],
   controllers: [VkmController],
-  providers: [VkmService, VkmDao, UserDao],
+  providers: [
+    VkmService,
+    VkmDao,
+    UserDao,
+    { provide: VKM_REPOSITORY, useClass: VkmDao },
+    { provide: USER_REPOSITORY, useClass: UserDao },
+  ],
   exports: [VkmService, VkmDao],
 })
 export class VkmModule {}

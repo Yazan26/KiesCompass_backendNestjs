@@ -5,10 +5,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseModule } from '../db/database.module';
 import { AuthController } from '../controllers/auth.controller';
 import { AuthService } from '../services/auth.service';
-import { UserDao } from '../dao/user.dao';
+import { UserDao } from '../infrastructure/dao/user.dao';
+import { USER_REPOSITORY } from '../application/ports/user-repository.port';
 import { BcryptPasswordService } from '../util/security/bcrypt-password.service';
 import { JwtServiceAdapter } from '../util/security/jwt.service';
 import { JwtStrategy } from '../middleware/jwt.strategy';
+import { PASSWORD_SERVICE } from '../application/ports/password-service.port';
+import { JWT_SERVICE } from '../application/ports/jwt-service.port';
 
 /**
  * Auth Module - Handles authentication features
@@ -28,12 +31,15 @@ import { JwtStrategy } from '../middleware/jwt.strategy';
   ],
   controllers: [AuthController],
   providers: [
-    AuthService,
-    UserDao,
-    BcryptPasswordService,
-    JwtServiceAdapter,
-    JwtStrategy,
+  AuthService,
+  UserDao,
+  { provide: USER_REPOSITORY, useClass: UserDao },
+  BcryptPasswordService,
+  { provide: PASSWORD_SERVICE, useClass: BcryptPasswordService },
+  JwtServiceAdapter,
+  { provide: JWT_SERVICE, useClass: JwtServiceAdapter },
+  JwtStrategy,
   ],
-  exports: [AuthService, UserDao],
+  exports: [AuthService, UserDao, USER_REPOSITORY],
 })
 export class AuthModule {}

@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app/app.module';
-import { VkmDao } from '../dao/vkm.dao';
+import { VkmDao } from '../infrastructure/dao/vkm.dao';
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -4,42 +4,24 @@
 
 This is a **NestJS + TypeScript + MongoDB** backend application following a **strict layered architecture** pattern inspired by traditional MVC and service-oriented design principles.
 
-## Architecture Pattern: Layered Architecture
+## Architecture Pattern: Onion Architecture (adapted)
 
-The application follows a **3-tier layered architecture** with strict separation of concerns:
+This project now follows the **Onion Architecture** principle with a small, pragmatic adaptation so the repo remains readable.
 
-```
-┌─────────────────────────────────────────────┐
-│         CONTROLLER LAYER (HTTP)             │
-│  Handles HTTP requests/responses            │
-│  Cannot execute queries directly            │
-└──────────────────┬──────────────────────────┘
-                   │ calls
-                   ▼
-┌─────────────────────────────────────────────┐
-│         SERVICE LAYER (Business Logic)      │
-│  Contains business rules & validation       │
-│  Orchestrates data operations               │
-└──────────────────┬──────────────────────────┘
-                   │ calls
-                   ▼
-┌─────────────────────────────────────────────┐
-│         DAO LAYER (Data Access)             │
-│  Executes database queries                  │
-│  Direct interaction with MongoDB            │
-└─────────────────────────────────────────────┘
-```
+Core rule enforced: Dependencies always point inward. Inner layers do not know outer layers.
 
-### Core Principle: **Dependency Flow**
+Layers (inner → outer):
 
-**Lower layers NEVER call higher layers**
-- ✅ Controller → Service → DAO ✓
-- ❌ DAO → Service ✗
-- ❌ Service → Controller ✗
+- Domain Layer: Entities & Value Objects (pure business logic)
+- Application Layer: Use-cases / Service interfaces (defines ports)
+- Interface Layer: Controllers, Presenters (depends on application ports)
+- Infrastructure Layer: Database, external APIs, DAO implementations (implements ports)
+
+The key change vs a simple layered design is that the application layer now defines small "ports" (TypeScript interfaces + DI tokens) that express required behavior (for example `USER_REPOSITORY`, `VKM_REPOSITORY`, `PASSWORD_SERVICE` and `JWT_SERVICE`). Outer layers (DAO, adapters) implement those ports and are bound in Nest modules. This enforces dependency inversion without heavily changing folder names.
 
 ---
 
-## Directory Structure
+## Directory Structure (after minimal Onion changes)
 
 ```
 src/
@@ -47,13 +29,13 @@ src/
 │   ├── auth.controller.ts    # Auth endpoints
 │   └── vkm.controller.ts     # VKM endpoints
 │
-├── services/                 # Business logic layer
-│   ├── auth.service.ts       # Auth business logic
-│   └── vkm.service.ts        # VKM business logic
+├── services/                 # Application layer - Use cases / Services
+│   ├── auth.service.ts       # Auth business logic (depends on ports)
+│   └── vkm.service.ts        # VKM business logic (depends on ports)
 │
-├── dao/                      # Data Access Objects
-│   ├── user.dao.ts           # User database queries
-│   └── vkm.dao.ts            # VKM database queries
+├── infrastructure/dao/       # Infrastructure implementations (DAOs)
+│   ├── user.dao.ts           # User database queries (implements USER_REPOSITORY)
+│   └── vkm.dao.ts            # VKM database queries (implements VKM_REPOSITORY)
 │
 ├── db/                       # Database configuration
 │   ├── schemas/              # Mongoose schemas
@@ -76,9 +58,9 @@ src/
 │   └── decorators/
 │       └── current-user.decorator.ts
 │
-├── modules/                  # NestJS feature modules
-│   ├── auth.module.ts
-│   └── vkm.module.ts
+├── modules/                  # NestJS feature modules (composition roots)
+│   ├── auth.module.ts        # Binds tokens to concrete implementations
+  │   └── vkm.module.ts
 │
 ├── app/                      # Root application
 │   ├── app.module.ts
@@ -124,7 +106,7 @@ export class VkmController {
 
 ---
 
-### 2. **Service Layer** (`/services`)
+### 2. **Application Layer** (`/services`)
 
 **Purpose:** Implement business logic and orchestrate operations
 
@@ -136,10 +118,9 @@ export class VkmController {
 - Throw business exceptions
 
 **Rules:**
-- ✅ Can call DAO layer
-- ✅ Can call other services
-- ❌ Cannot be called by DAO layer
-- ❌ Cannot directly execute database queries
+- ✅ Services depend on *ports* (interfaces) defined by the application/domain layer
+- ✅ Services orchestrate business logic
+- ❌ Services must not import infrastructure implementations directly
 
 **Example:**
 ```typescript
@@ -166,7 +147,7 @@ export class VkmService {
 
 ---
 
-### 3. **DAO Layer** (`/dao`)
+### 3. **Infrastructure Layer** (`/infrastructure/dao`, `db`)
 
 **Purpose:** Execute database operations (Data Access Object pattern)
 
@@ -177,10 +158,11 @@ export class VkmService {
 - Return raw data or documents
 
 **Rules:**
+- ✅ Infrastructure provides concrete implementations of ports defined in the application layer
 - ✅ Can interact with database (Mongoose models)
-- ❌ Cannot call Service layer
-- ❌ Cannot call Controller layer
-- ❌ Cannot contain business logic
+- ❌ Should not import application internals other than the port interfaces
+
+Note: The DAOs are located under `src/infrastructure/dao` to make the infrastructure boundary explicit.
 
 **Example:**
 ```typescript
@@ -213,13 +195,13 @@ export class VkmDao {
    - Extracts user from JWT (if authenticated)
    ↓
 3. VkmService.getAllVkms(query, userId)
-   - Calls VkmDao.findAll(filters)
-   - Calls UserDao.getFavoriteVkmIds(userId)
+  - Calls `VKM_REPOSITORY.findAll(filters)` (port)
+  - Calls `USER_REPOSITORY.getFavoriteVkmIds(userId)` (port)
    - Merges data & applies business logic
    ↓
 4. VkmDao.findAll() & UserDao.getFavoriteVkmIds()
-   - Execute MongoDB queries
-   - Return raw data
+  - Execute MongoDB queries (infrastructure implementations)
+  - Return raw data / domain entities
    ↓
 5. Response flows back up:
    DAO → Service → Controller → HTTP Response
@@ -253,13 +235,22 @@ export class VkmDao {
 
 Each feature has its own module that wires everything together:
 
-### AuthModule
+### AuthModule (composition root - example)
 ```typescript
 @Module({
   imports: [DatabaseModule, JwtModule, PassportModule],
   controllers: [AuthController],
-  providers: [AuthService, UserDao, BcryptPasswordService, JwtServiceAdapter, JwtStrategy],
-  exports: [AuthService, UserDao],
+  providers: [
+    AuthService,
+    UserDao,
+    { provide: USER_REPOSITORY, useClass: UserDao },
+    BcryptPasswordService,
+    { provide: PASSWORD_SERVICE, useClass: BcryptPasswordService },
+    JwtServiceAdapter,
+    { provide: JWT_SERVICE, useClass: JwtServiceAdapter },
+    JwtStrategy,
+  ],
+  exports: [AuthService, UserDao, USER_REPOSITORY],
 })
 export class AuthModule {}
 ```
@@ -279,10 +270,10 @@ export class VkmModule {}
 
 ## Key Design Decisions
 
-### 1. **Layered Architecture vs Onion/Hexagonal**
-- **Chosen:** Layered Architecture
-- **Why:** Simpler, more maintainable for small-to-medium projects
-- **Trade-off:** Less flexible than Onion, but easier to understand
+### 1. **Onion Architecture (adapted)**
+- **Chosen:** Onion-style dependency inversion enforced via small, explicit ports and DI tokens
+- **Why:** Keep code readable while preventing inward dependency violations; minimal changes to folder structure
+- **Trade-off:** Slightly more indirection (tokens/interfaces) but improved testability and decoupling
 
 ### 2. **DAO Pattern**
 - **Chosen:** Explicit DAO layer
@@ -293,6 +284,10 @@ export class VkmModule {}
 - **Chosen:** Mongoose ODM
 - **Why:** Strong typing with TypeScript, schema validation
 - **Structure:** Schemas in `/db`, accessed via DAOs
+
+### Indexing note
+
+Removed duplicate Mongoose index warnings by centralizing index declarations in the schema files. Field-level `unique: true` flags were removed for `username` and `email` in `src/db/schemas/user.schema.ts` and replaced by explicit `UserSchema.index(...)` calls with case-insensitive collation. This avoids duplicate-index warnings at startup.
 
 ### 4. **DTOs (Data Transfer Objects)**
 - **Location:** `/util/dtos`
@@ -363,4 +358,4 @@ This architecture provides:
 - ✅ **NestJS best practices** (modules, dependency injection)
 - ✅ **Type-safe** (TypeScript throughout)
 
-**Remember:** Controllers ask Services, Services ask DAOs, DAOs query the database. Never the other way around!
+**Remember:** Controllers ask Services, Services depend on *ports* (interfaces) defined inward, and DI binds infrastructure implementations outward. Dependencies must always point inward.
