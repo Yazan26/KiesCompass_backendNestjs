@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app/app.module';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserDocument } from '../infrastructure/auth/database/schemas/user.schema';
+import { UserDocument } from '../db/schemas/user.schema';
 
 /**
  * Script to rebuild MongoDB indexes for case-insensitive username

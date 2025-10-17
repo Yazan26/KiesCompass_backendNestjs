@@ -3,8 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from '../application/auth/auth.module';
-import { VkmModule } from '../application/vkm/vkm.module';
+import { AuthModule } from '../modules/auth.module';
+import { VkmModule } from '../modules/vkm.module';
 
 @Module({
   imports: [

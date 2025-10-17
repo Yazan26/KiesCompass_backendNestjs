@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app/app.module';
-import { VKM_REPOSITORY } from '../application/vkm/ports/vkm-repository.port';
-import type { IVkmRepository } from '../application/vkm/ports/vkm-repository.port';
+import { VkmDao } from '../dao/vkm.dao';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -14,7 +13,7 @@ async function importVkmData() {
 
   // Bootstrap the application
   const app = await NestFactory.createApplicationContext(AppModule);
-  const vkmRepository = app.get<IVkmRepository>(VKM_REPOSITORY);
+  const vkmDao = app.get<VkmDao>(VkmDao);
 
   // Read CSV file
   const csvPath = path.join(
@@ -59,7 +58,7 @@ async function importVkmData() {
         isActive: true,
       };
 
-      await vkmRepository.create(vkmData);
+      await vkmDao.create(vkmData);
       successCount++;
       console.log(`✅ Imported: ${vkmData.name}`);
     } catch (error) {
