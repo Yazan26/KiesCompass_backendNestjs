@@ -1,4 +1,4 @@
-import { IsEmail, MinLength, IsString, Matches } from 'class-validator';
+import { IsEmail, MinLength, IsString, Matches, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
@@ -69,4 +69,46 @@ export class UserResponseDto {
 
   @ApiProperty({ example: '2023-10-01T00:00:00.000Z' })
   updatedAt: Date;
+}
+
+export class AdminUserResponseDto extends UserResponseDto {
+  @ApiProperty({ example: 'student', enum: ['student', 'admin'] })
+  role: 'student' | 'admin';
+
+  @ApiProperty({ 
+    example: ['507f1f77bcf86cd799439011'], 
+    description: 'Array of favorite VKM IDs',
+    type: [String]
+  })
+  favoriteVkmIds: string[];
+}
+
+export class UpdateUserDto {
+  @ApiProperty({ example: 'johndoe', required: false })
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-zA-Z0-9_]{3,20}$/, {
+    message: 'gebruikersnaam moet 3-20 tekens zijn, alfanumeriek of underscore',
+  })
+  username?: string;
+
+  @ApiProperty({ example: 'user@example.com', required: false })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty({ example: 'John', required: false })
+  @IsOptional()
+  @IsString()
+  firstname?: string;
+
+  @ApiProperty({ example: 'Doe', required: false })
+  @IsOptional()
+  @IsString()
+  lastname?: string;
+
+  @ApiProperty({ example: 'student', enum: ['student', 'admin'], required: false })
+  @IsOptional()
+  @IsString()
+  role?: 'student' | 'admin';
 }

@@ -106,31 +106,72 @@ export class UserDao {
   }
 
   /**
-   * Search users by username, email, firstname or lastname.
-   * Returns paginated results and total count.
+   * Find all users with optional filtering
    */
-  async search(query?: string, page = 1, limit = 20): Promise<{ results: any[]; total: number }> {
-    const filter: any = {};
-
-    if (query && query.trim().length > 0) {
-      const q = query.trim();
-      // Use case-insensitive regex search across multiple fields
-      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-      filter.$or = [
-        { username: { $regex: regex } },
-        { email: { $regex: regex } },
-        { firstname: { $regex: regex } },
-        { lastname: { $regex: regex } },
-      ];
+  async findAll(filters?: {
+    username?: string;
+    email?: string;
+    firstname?: string;
+    lastname?: string;
+    role?: string;
+  }): Promise<any[]> {
+    const query: any = {};
+    
+    if (filters) {
+      if (filters.username) {
+        query.username = new RegExp(filters.username, 'i');
+      }
+      if (filters.email) {
+        query.email = new RegExp(filters.email, 'i');
+      }
+      if (filters.firstname) {
+        query.firstname = new RegExp(filters.firstname, 'i');
+      }
+      if (filters.lastname) {
+        query.lastname = new RegExp(filters.lastname, 'i');
+      }
+      if (filters.role) {
+        query.role = filters.role;
+      }
     }
 
-    const skip = Math.max(0, page - 1) * limit;
+    return this.userModel.find(query).lean().exec();
+  }
 
-    const [results, total] = await Promise.all([
-      this.userModel.find(filter).collation({ locale: 'en', strength: 2 }).skip(skip).limit(limit).lean().exec(),
-      this.userModel.countDocuments(filter).exec(),
-    ]);
+  /**
+   * Update user by ID
+   */
+  async update(
+    userId: string,
+    updates: {
+      username?: string;
+      email?: string;
+      firstname?: string;
+      lastname?: string;
+      role?: string;
+    },
+  ): Promise<any | null> {
+    const updateData: any = {};
+    
+    if (updates.username) updateData.username = updates.username;
+    if (updates.email) updateData.email = updates.email.toLowerCase();
+    if (updates.firstname) updateData.firstname = updates.firstname;
+    if (updates.lastname) updateData.lastname = updates.lastname;
+    if (updates.role) updateData.role = updates.role;
 
-    return { results, total };
+    const user = await this.userModel
+      .findByIdAndUpdate(userId, updateData, { new: true })
+      .lean()
+      .exec();
+    
+    return user;
+  }
+
+  /**
+   * Delete user by ID
+   */
+  async delete(userId: string): Promise<boolean> {
+    const result = await this.userModel.findByIdAndDelete(userId).exec();
+    return result !== null;
   }
 }
