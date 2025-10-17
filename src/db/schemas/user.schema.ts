@@ -34,7 +34,13 @@ export const UserSchema = SchemaFactory.createForClass(UserDocument);
 // and remove `unique: true` from the @Prop() declarations to avoid duplicate
 // index warnings from Mongoose (index created twice: field + schema.index()).
 // Add case-insensitive unique index for email
-UserSchema.index({ email: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
+UserSchema.index(
+  { email: 1 },
+  { unique: true, collation: { locale: 'en', strength: 2 } },
+);
 
 // Add case-insensitive unique index for username
-UserSchema.index({ username: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } });
+UserSchema.index(
+  { username: 1 },
+  { unique: true, collation: { locale: 'en', strength: 2 } },
+);

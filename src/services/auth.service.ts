@@ -1,11 +1,17 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { UserDao } from '../infrastructure/dao/user.dao';
-import { Inject } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { USER_REPOSITORY } from '../application/ports/user-repository.port';
 import type { IUserRepository } from '../application/ports/user-repository.port';
-import { RegisterDto, LoginDto, AuthResponseDto, UserResponseDto } from '../util/dtos/auth.dto';
-import { BcryptPasswordService } from '../util/security/bcrypt-password.service';
-import { JwtServiceAdapter } from '../util/security/jwt.service';
+import {
+  RegisterDto,
+  LoginDto,
+  AuthResponseDto,
+  UserResponseDto,
+} from '../util/dtos/auth.dto';
 import { PASSWORD_SERVICE } from '../application/ports/password-service.port';
 import type { IPasswordService } from '../application/ports/password-service.port';
 import { JWT_SERVICE } from '../application/ports/jwt-service.port';
@@ -18,37 +24,10 @@ import type { IJwtService } from '../application/ports/jwt-service.port';
  */
 @Injectable()
 export class AuthService {
-  constructor(
-    @Inject(USER_REPOSITORY)
-    private readonly userDao: IUserRepository,
-    @Inject(PASSWORD_SERVICE)
-    private readonly passwordService: IPasswordService | BcryptPasswordService,
-    @Inject(JWT_SERVICE)
-    private readonly jwtService: IJwtService | JwtServiceAdapter,
-  ) {}
-
   /**
-   * Register a new user
+   * DTO-friendly representation of a lean Mongo document.
    */
-  async register(dto: RegisterDto): Promise<UserResponseDto> {
-    // Check if username already exists
-    const usernameExists = await this.userDao.existsByUsername(dto.username);
-    if (usernameExists) {
-      throw new ConflictException('Username already in use');
-    }
-
-    // Check if email already exists
-    const emailExists = await this.userDao.existsByEmail(dto.email);
-    if (emailExists) {
-      throw new ConflictException('Email already in use');
-    }
-
-    // Hash password
-    const passwordHash = await this.passwordService.hash(dto.password);
-
-    // Create user
-    const user = await this.userDao.create(dto.username, dto.email, passwordHash);
-
+  private static toUserResponse(user: LeanUser): UserResponseDto {
     return {
       id: user._id.toString(),
       username: user.username,
@@ -56,6 +35,30 @@ export class AuthService {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
+  }
+
+  constructor(
+    @Inject(USER_REPOSITORY)
+    private readonly userDao: IUserRepository,
+    @Inject(PASSWORD_SERVICE)
+    private readonly passwordService: IPasswordService,
+    @Inject(JWT_SERVICE)
+    private readonly jwtService: IJwtService,
+  ) {}
+
+  /**
+   * Register a new user
+   */
+  async register(dto: RegisterDto): Promise<UserResponseDto> {
+    await this.ensureUniqueCredentials(dto.username, dto.email);
+    const passwordHash = await this.passwordService.hash(dto.password);
+
+    const user = await this.userDao.create(
+      dto.username,
+      dto.email,
+      passwordHash,
+    );
+    return AuthService.toUserResponse(user as LeanUser);
   }
 
   /**
@@ -68,14 +71,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    // Verify password
-    const isPasswordValid = await this.passwordService.compare(dto.password, user.passwordHash);
+    const isPasswordValid = await this.passwordService.compare(
+      dto.password,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    // Generate JWT token
-    const payload = { sub: user._id.toString(), username: user.username, email: user.email };
+    const payload = {
+      sub: user._id.toString(),
+      username: user.username,
+      email: user.email,
+    };
     const access_token = await this.jwtService.generateToken(payload);
 
     return { access_token };
@@ -90,13 +98,7 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    return {
-      id: user._id.toString(),
-      username: user.username,
-      email: user.email,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return AuthService.toUserResponse(user as LeanUser);
   }
 
   /**
@@ -114,4 +116,35 @@ export class AuthService {
       role: user.role,
     };
   }
+
+  /**
+   * Ensures username and email are unique before creating a user.
+   */
+  private async ensureUniqueCredentials(
+    username: string,
+    email: string,
+  ): Promise<void> {
+    const [usernameExists, emailExists] = await Promise.all([
+      this.userDao.existsByUsername(username),
+      this.userDao.existsByEmail(email),
+    ]);
+
+    if (usernameExists) {
+      throw new ConflictException('Username already in use');
+    }
+
+    if (emailExists) {
+      throw new ConflictException('Email already in use');
+    }
+  }
 }
+
+type LeanUser = {
+  _id: { toString(): string };
+  username: string;
+  email: string;
+  passwordHash: string;
+  createdAt: Date;
+  updatedAt: Date;
+  role: string;
+};

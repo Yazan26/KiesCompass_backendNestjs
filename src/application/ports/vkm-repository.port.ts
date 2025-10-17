@@ -14,7 +14,12 @@ export interface CreateVkmData {
 }
 
 export interface IVkmRepository {
-  findAll(filters?: { location?: string; level?: string; studyCredit?: number; isActive?: boolean }): Promise<any[]>;
+  findAll(filters?: {
+    location?: string;
+    level?: string;
+    studyCredit?: number;
+    isActive?: boolean;
+  }): Promise<any[]>;
   findById(id: string): Promise<any | null>;
   findByIds(ids: string[]): Promise<any[]>;
   create(data: CreateVkmData): Promise<any>;

@@ -17,8 +17,8 @@ import { USER_REPOSITORY } from '../application/ports/user-repository.port';
     VkmService,
     VkmDao,
     UserDao,
-    { provide: VKM_REPOSITORY, useClass: VkmDao },
-    { provide: USER_REPOSITORY, useClass: UserDao },
+    { provide: VKM_REPOSITORY, useExisting: VkmDao },
+    { provide: USER_REPOSITORY, useExisting: UserDao },
   ],
   exports: [VkmService, VkmDao],
 })

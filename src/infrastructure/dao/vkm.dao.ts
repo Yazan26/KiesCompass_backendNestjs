@@ -49,7 +49,8 @@ export class VkmDao {
     if (filters) {
       if (filters.location) query.location = filters.location;
       if (filters.level) query.level = filters.level;
-      if (filters.studyCredit !== undefined) query.studycredit = filters.studyCredit;
+      if (filters.studyCredit !== undefined)
+        query.studycredit = filters.studyCredit;
 
       if (filters.isActive !== undefined) {
         query.$or = [
@@ -68,7 +69,10 @@ export class VkmDao {
 
   async findByIds(ids: string[]): Promise<any[]> {
     if (!ids || ids.length === 0) return [];
-    return this.vkmModel.find({ _id: { $in: ids } }).lean().exec();
+    return this.vkmModel
+      .find({ _id: { $in: ids } })
+      .lean()
+      .exec();
   }
 
   async create(data: CreateVkmData): Promise<any> {
@@ -93,14 +97,19 @@ export class VkmDao {
     const dbUpdates: any = {};
 
     if (updates.name !== undefined) dbUpdates.name = updates.name;
-    if (updates.shortDescription !== undefined) dbUpdates.shortdescription = updates.shortDescription;
-    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.shortDescription !== undefined)
+      dbUpdates.shortdescription = updates.shortDescription;
+    if (updates.description !== undefined)
+      dbUpdates.description = updates.description;
     if (updates.content !== undefined) dbUpdates.content = updates.content;
-    if (updates.studyCredit !== undefined) dbUpdates.studycredit = updates.studyCredit;
+    if (updates.studyCredit !== undefined)
+      dbUpdates.studycredit = updates.studyCredit;
     if (updates.location !== undefined) dbUpdates.location = updates.location;
-    if (updates.contactId !== undefined) dbUpdates.contact_id = updates.contactId;
+    if (updates.contactId !== undefined)
+      dbUpdates.contact_id = updates.contactId;
     if (updates.level !== undefined) dbUpdates.level = updates.level;
-    if (updates.learningOutcomes !== undefined) dbUpdates.learningoutcomes = updates.learningOutcomes;
+    if (updates.learningOutcomes !== undefined)
+      dbUpdates.learningoutcomes = updates.learningOutcomes;
     if (updates.isActive !== undefined) dbUpdates.isActive = updates.isActive;
 
     return this.vkmModel
@@ -121,7 +130,9 @@ export class VkmDao {
       .exec();
   }
 
-  async getRecommendations(limit: number = 10): Promise<any[]> {
+  async getRecommendations(userId: string, limit: number = 10): Promise<any[]> {
+    void userId; // Interface parity; personalization can be added later.
+
     return this.vkmModel
       .find({ $or: [{ isActive: true }, { isActive: { $exists: false } }] })
       .sort({ studycredit: 1, _id: -1 })

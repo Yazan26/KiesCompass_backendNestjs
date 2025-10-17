@@ -12,9 +12,21 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { VkmService } from '../services/vkm.service';
-import { CreateVkmDto, UpdateVkmDto, VkmResponseDto, GetAllVkmsQueryDto } from '../util/dtos/vkm.dto';
+import {
+  CreateVkmDto,
+  UpdateVkmDto,
+  VkmResponseDto,
+  GetAllVkmsQueryDto,
+} from '../util/dtos/vkm.dto';
 import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
 import { AdminGuard } from '../middleware/admin.guard';
 import { CurrentUser } from '../util/decorators/current-user.decorator';
@@ -33,13 +45,23 @@ export class VkmController {
    * GET /vkm - Get all VKMs with optional filters
    */
   @Get()
-  @ApiOperation({ summary: 'Get all VKMs', description: 'Retrieve all VKM modules with optional filtering' })
+  @ApiOperation({
+    summary: 'Get all VKMs',
+    description: 'Retrieve all VKM modules with optional filtering',
+  })
   @ApiQuery({ name: 'location', required: false, example: 'Den Bosch' })
   @ApiQuery({ name: 'level', required: false, example: 'NLQF5' })
   @ApiQuery({ name: 'studyCredit', required: false, example: 15, type: Number })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
-  @ApiResponse({ status: 200, description: 'List of VKMs retrieved successfully', type: [VkmResponseDto] })
-  async getAllVkms(@Query() query: GetAllVkmsQueryDto, @CurrentUser() user?: any): Promise<VkmResponseDto[]> {
+  @ApiResponse({
+    status: 200,
+    description: 'List of VKMs retrieved successfully',
+    type: [VkmResponseDto],
+  })
+  async getAllVkms(
+    @Query() query: GetAllVkmsQueryDto,
+    @CurrentUser() user?: any,
+  ): Promise<VkmResponseDto[]> {
     return this.vkmService.getAllVkms(query, user?.userId);
   }
 
@@ -49,8 +71,15 @@ export class VkmController {
   @Get('favorites')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get my favorites', description: "Return all VKMs the authenticated user has favorited" })
-  @ApiResponse({ status: 200, description: 'Favorite VKMs retrieved successfully', type: [VkmResponseDto] })
+  @ApiOperation({
+    summary: 'Get my favorites',
+    description: 'Return all VKMs the authenticated user has favorited',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Favorite VKMs retrieved successfully',
+    type: [VkmResponseDto],
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMyFavorites(@CurrentUser() user: any): Promise<VkmResponseDto[]> {
     return this.vkmService.getUserFavorites(user.userId);
@@ -64,9 +93,16 @@ export class VkmController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get personalized recommendations' })
   @ApiQuery({ name: 'limit', required: false, example: 10, type: Number })
-  @ApiResponse({ status: 200, description: 'Recommendations retrieved successfully', type: [VkmResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Recommendations retrieved successfully',
+    type: [VkmResponseDto],
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getRecommendations(@CurrentUser() user: any, @Query('limit') limit?: number): Promise<VkmResponseDto[]> {
+  async getRecommendations(
+    @CurrentUser() user: any,
+    @Query('limit') limit?: number,
+  ): Promise<VkmResponseDto[]> {
     return this.vkmService.getRecommendations(user.userId, limit || 10);
   }
 
@@ -76,9 +112,16 @@ export class VkmController {
   @Get(':id')
   @ApiOperation({ summary: 'Get VKM by ID' })
   @ApiParam({ name: 'id', example: '68ed766ca5d5dc8235d7ce66' })
-  @ApiResponse({ status: 200, description: 'VKM retrieved successfully', type: VkmResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'VKM retrieved successfully',
+    type: VkmResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'VKM not found' })
-  async getVkmById(@Param('id') id: string, @CurrentUser() user?: any): Promise<VkmResponseDto> {
+  async getVkmById(
+    @Param('id') id: string,
+    @CurrentUser() user?: any,
+  ): Promise<VkmResponseDto> {
     return this.vkmService.getVkmById(id, user?.userId);
   }
 
@@ -89,9 +132,15 @@ export class VkmController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Toggle favorite', description: 'Add or remove a VKM from favorites' })
+  @ApiOperation({
+    summary: 'Toggle favorite',
+    description: 'Add or remove a VKM from favorites',
+  })
   @ApiParam({ name: 'id', example: '68ed766ca5d5dc8235d7ce66' })
-  @ApiResponse({ status: 200, description: 'Favorite status toggled successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Favorite status toggled successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'VKM not found' })
   async toggleFavorite(
@@ -108,10 +157,20 @@ export class VkmController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create VKM (Admin)', description: 'Create a new VKM module - admin access required' })
-  @ApiResponse({ status: 201, description: 'VKM created successfully', type: VkmResponseDto })
+  @ApiOperation({
+    summary: 'Create VKM (Admin)',
+    description: 'Create a new VKM module - admin access required',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'VKM created successfully',
+    type: VkmResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - admin access required',
+  })
   async createVkm(@Body() dto: CreateVkmDto): Promise<VkmResponseDto> {
     return this.vkmService.createVkm(dto);
   }
@@ -122,13 +181,26 @@ export class VkmController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update VKM (Admin)', description: 'Update an existing VKM module - admin access required' })
+  @ApiOperation({
+    summary: 'Update VKM (Admin)',
+    description: 'Update an existing VKM module - admin access required',
+  })
   @ApiParam({ name: 'id', example: '68ed766ca5d5dc8235d7ce66' })
-  @ApiResponse({ status: 200, description: 'VKM updated successfully', type: VkmResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'VKM updated successfully',
+    type: VkmResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - admin access required',
+  })
   @ApiResponse({ status: 404, description: 'VKM not found' })
-  async updateVkm(@Param('id') id: string, @Body() dto: UpdateVkmDto): Promise<VkmResponseDto> {
+  async updateVkm(
+    @Param('id') id: string,
+    @Body() dto: UpdateVkmDto,
+  ): Promise<VkmResponseDto> {
     return this.vkmService.updateVkm(id, dto);
   }
 
@@ -139,11 +211,17 @@ export class VkmController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete VKM (Admin)', description: 'Permanently delete a VKM module - admin access required' })
+  @ApiOperation({
+    summary: 'Delete VKM (Admin)',
+    description: 'Permanently delete a VKM module - admin access required',
+  })
   @ApiParam({ name: 'id', example: '68ed766ca5d5dc8235d7ce66' })
   @ApiResponse({ status: 204, description: 'VKM deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - admin access required',
+  })
   @ApiResponse({ status: 404, description: 'VKM not found' })
   async deleteVkm(@Param('id') id: string): Promise<void> {
     await this.vkmService.deleteVkm(id);
@@ -155,11 +233,21 @@ export class VkmController {
   @Patch(':id/deactivate')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Deactivate VKM (Admin)', description: 'Soft delete a VKM by marking it inactive' })
+  @ApiOperation({
+    summary: 'Deactivate VKM (Admin)',
+    description: 'Soft delete a VKM by marking it inactive',
+  })
   @ApiParam({ name: 'id', example: '68ed766ca5d5dc8235d7ce66' })
-  @ApiResponse({ status: 200, description: 'VKM deactivated successfully', type: VkmResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'VKM deactivated successfully',
+    type: VkmResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - admin access required',
+  })
   @ApiResponse({ status: 404, description: 'VKM not found' })
   async deactivateVkm(@Param('id') id: string): Promise<VkmResponseDto> {
     return this.vkmService.deactivateVkm(id);

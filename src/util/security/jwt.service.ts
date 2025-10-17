@@ -9,14 +9,15 @@ import { JwtService as NestJwtService } from '@nestjs/jwt';
 export class JwtServiceAdapter {
   constructor(private readonly jwtService: NestJwtService) {}
 
-  async generateToken(payload: {
-    sub: string;
-    email: string;
-  }): Promise<string> {
+  async generateToken<TPayload extends Record<string, unknown>>(
+    payload: TPayload,
+  ): Promise<string> {
     return this.jwtService.signAsync(payload);
   }
 
-  async verifyToken(token: string): Promise<{ sub: string; email: string }> {
+  async verifyToken<TPayload extends Record<string, unknown>>(
+    token: string,
+  ): Promise<TPayload> {
     return this.jwtService.verifyAsync(token);
   }
 }

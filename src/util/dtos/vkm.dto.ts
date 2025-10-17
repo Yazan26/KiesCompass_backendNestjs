@@ -1,4 +1,12 @@
-import { IsString, IsNumber, IsBoolean, IsOptional, MinLength, MaxLength, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  MinLength,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -6,32 +14,37 @@ import { ApiProperty } from '@nestjs/swagger';
  * DTO for creating a new VKM
  */
 export class CreateVkmDto {
-  @ApiProperty({ example: 'Learning and working abroad', description: 'VKM module name' })
+  @ApiProperty({
+    example: 'Learning and working abroad',
+    description: 'VKM module name',
+  })
   @IsString()
   @MinLength(3)
   @MaxLength(200)
   name: string;
 
-  @ApiProperty({ 
-    example: 'Internationaal, persoonlijke ontwikkeling, verpleegkunde', 
-    description: 'Brief description of the module' 
+  @ApiProperty({
+    example: 'Internationaal, persoonlijke ontwikkeling, verpleegkunde',
+    description: 'Brief description of the module',
   })
   @IsString()
   @MinLength(10)
   @MaxLength(500)
   shortDescription: string;
 
-  @ApiProperty({ 
-    example: 'Studenten kiezen binnen de (stam) van de opleiding van Verpleegkunde steeds vaker voor een stage in het buitenland...', 
-    description: 'Full description of the module' 
+  @ApiProperty({
+    example:
+      'Studenten kiezen binnen de (stam) van de opleiding van Verpleegkunde steeds vaker voor een stage in het buitenland...',
+    description: 'Full description of the module',
   })
   @IsString()
   @MinLength(10)
   description: string;
 
-  @ApiProperty({ 
-    example: 'Studenten kiezen binnen de (stam) van de opleiding van Verpleegkunde steeds vaker voor een stage in het buitenland...', 
-    description: 'Detailed content of the module' 
+  @ApiProperty({
+    example:
+      'Studenten kiezen binnen de (stam) van de opleiding van Verpleegkunde steeds vaker voor een stage in het buitenland...',
+    description: 'Detailed content of the module',
   })
   @IsString()
   @MinLength(10)
@@ -42,7 +55,10 @@ export class CreateVkmDto {
   @Min(0)
   studyCredit: number;
 
-  @ApiProperty({ example: 'Den Bosch', description: 'Location where module is offered' })
+  @ApiProperty({
+    example: 'Den Bosch',
+    description: 'Location where module is offered',
+  })
   @IsString()
   @MinLength(2)
   location: string;
@@ -51,13 +67,17 @@ export class CreateVkmDto {
   @IsString()
   contactId: string;
 
-  @ApiProperty({ example: 'NLQF5', description: 'Education level (e.g., NLQF5, NLQF6)' })
+  @ApiProperty({
+    example: 'NLQF5',
+    description: 'Education level (e.g., NLQF5, NLQF6)',
+  })
   @IsString()
   level: string;
 
-  @ApiProperty({ 
-    example: 'De student toont professioneel gedrag conform de beroepscode bij laagcomplexe zorgvragers...', 
-    description: 'Expected learning outcomes' 
+  @ApiProperty({
+    example:
+      'De student toont professioneel gedrag conform de beroepscode bij laagcomplexe zorgvragers...',
+    description: 'Expected learning outcomes',
   })
   @IsString()
   learningOutcomes: string;
@@ -120,7 +140,11 @@ export class UpdateVkmDto {
   @IsString()
   learningOutcomes?: string;
 
-  @ApiProperty({ example: false, required: false, description: 'Active status' })
+  @ApiProperty({
+    example: false,
+    required: false,
+    description: 'Active status',
+  })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
@@ -136,13 +160,19 @@ export class VkmResponseDto {
   @ApiProperty({ example: 'Learning and working abroad' })
   name: string;
 
-  @ApiProperty({ example: 'Internationaal, persoonlijke ontwikkeling, verpleegkunde' })
+  @ApiProperty({
+    example: 'Internationaal, persoonlijke ontwikkeling, verpleegkunde',
+  })
   shortDescription: string;
 
-  @ApiProperty({ example: 'Studenten kiezen binnen de (stam) van de opleiding...' })
+  @ApiProperty({
+    example: 'Studenten kiezen binnen de (stam) van de opleiding...',
+  })
   description: string;
 
-  @ApiProperty({ example: 'Studenten kiezen binnen de (stam) van de opleiding...' })
+  @ApiProperty({
+    example: 'Studenten kiezen binnen de (stam) van de opleiding...',
+  })
   content: string;
 
   @ApiProperty({ example: 15 })
@@ -169,7 +199,11 @@ export class VkmResponseDto {
   @ApiProperty({ example: '2025-10-14T10:00:00.000Z' })
   updatedAt: Date;
 
-  @ApiProperty({ example: false, required: false, description: 'Whether the VKM is favorited by current user' })
+  @ApiProperty({
+    example: false,
+    required: false,
+    description: 'Whether the VKM is favorited by current user',
+  })
   isFavorited?: boolean;
 }
 
@@ -177,23 +211,39 @@ export class VkmResponseDto {
  * DTO for query parameters when getting all VKMs
  */
 export class GetAllVkmsQueryDto {
-  @ApiProperty({ example: 'Den Bosch', required: false, description: 'Filter by location' })
+  @ApiProperty({
+    example: 'Den Bosch',
+    required: false,
+    description: 'Filter by location',
+  })
   @IsOptional()
   @IsString()
   location?: string;
 
-  @ApiProperty({ example: 'NLQF5', required: false, description: 'Filter by education level' })
+  @ApiProperty({
+    example: 'NLQF5',
+    required: false,
+    description: 'Filter by education level',
+  })
   @IsOptional()
   @IsString()
   level?: string;
 
-  @ApiProperty({ example: 15, required: false, description: 'Filter by study credits' })
+  @ApiProperty({
+    example: 15,
+    required: false,
+    description: 'Filter by study credits',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   studyCredit?: number;
 
-  @ApiProperty({ example: true, required: false, description: 'Filter by active status' })
+  @ApiProperty({
+    example: true,
+    required: false,
+    description: 'Filter by active status',
+  })
   @IsOptional()
   @Transform(({ value }) => {
     if (value === 'true') return true;

@@ -34,7 +34,11 @@ export class UserDao {
     return this.userModel.findById(id).lean().exec();
   }
 
-  async create(username: string, email: string, passwordHash: string): Promise<any> {
+  async create(
+    username: string,
+    email: string,
+    passwordHash: string,
+  ): Promise<any> {
     const user = await this.userModel.create({
       username,
       email: email.toLowerCase(),

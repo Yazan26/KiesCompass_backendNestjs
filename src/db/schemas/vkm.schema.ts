@@ -54,4 +54,8 @@ VkmSchema.index({ location: 1 });
 VkmSchema.index({ level: 1 });
 VkmSchema.index({ studycredit: 1 });
 VkmSchema.index({ isActive: 1 });
-VkmSchema.index({ name: 'text', shortdescription: 'text', description: 'text' });
+VkmSchema.index({
+  name: 'text',
+  shortdescription: 'text',
+  description: 'text',
+});

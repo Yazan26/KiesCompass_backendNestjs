@@ -1,7 +1,17 @@
 import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
-import { RegisterDto, LoginDto, AuthResponseDto, UserResponseDto } from '../util/dtos/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  AuthResponseDto,
+  UserResponseDto,
+} from '../util/dtos/auth.dto';
 import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
 import { CurrentUser } from '../util/decorators/current-user.decorator';
 
@@ -49,7 +59,9 @@ export class AuthController {
     type: UserResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getProfile(@CurrentUser() user: { userId: string }): Promise<UserResponseDto> {
+  async getProfile(
+    @CurrentUser() user: { userId: string },
+  ): Promise<UserResponseDto> {
     return this.authService.getUserProfile(user.userId);
   }
 }
