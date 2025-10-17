@@ -13,13 +13,21 @@ export interface CreateVkmData {
   isActive?: boolean;
 }
 
+export interface VkmFilters {
+  name?: string;
+  location?: string;
+  level?: string;
+  studyCredit?: number;
+  shortDescription?: string;
+  description?: string;
+  content?: string;
+  learningOutcomes?: string;
+  contactId?: string;
+  isActive?: boolean;
+}
+
 export interface IVkmRepository {
-  findAll(filters?: {
-    location?: string;
-    level?: string;
-    studyCredit?: number;
-    isActive?: boolean;
-  }): Promise<any[]>;
+  findAll(filters?: VkmFilters): Promise<any[]>;
   findById(id: string): Promise<any | null>;
   findByIds(ids: string[]): Promise<any[]>;
   create(data: CreateVkmData): Promise<any>;

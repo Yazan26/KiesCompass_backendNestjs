@@ -107,6 +107,7 @@ export class AuthService {
       sub: user._id.toString(),
       username: user.username,
       email: user.email,
+      role: user.role,
     };
     const access_token = await this.jwtService.generateToken(payload);
 

@@ -212,9 +212,18 @@ export class VkmResponseDto {
  */
 export class GetAllVkmsQueryDto {
   @ApiProperty({
+    example: 'learning',
+    required: false,
+    description: 'Filter by name (partial match, case-insensitive)',
+  })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiProperty({
     example: 'Den Bosch',
     required: false,
-    description: 'Filter by location',
+    description: 'Filter by location (partial match, case-insensitive)',
   })
   @IsOptional()
   @IsString()
@@ -223,7 +232,7 @@ export class GetAllVkmsQueryDto {
   @ApiProperty({
     example: 'NLQF5',
     required: false,
-    description: 'Filter by education level',
+    description: 'Filter by education level (exact match)',
   })
   @IsOptional()
   @IsString()
@@ -232,12 +241,57 @@ export class GetAllVkmsQueryDto {
   @ApiProperty({
     example: 15,
     required: false,
-    description: 'Filter by study credits',
+    description: 'Filter by study credits (exact match)',
   })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   studyCredit?: number;
+
+  @ApiProperty({
+    example: 'verpleegkunde',
+    required: false,
+    description: 'Search in short description (partial match, case-insensitive)',
+  })
+  @IsOptional()
+  @IsString()
+  shortDescription?: string;
+
+  @ApiProperty({
+    example: 'stage',
+    required: false,
+    description: 'Search in description (partial match, case-insensitive)',
+  })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiProperty({
+    example: 'student',
+    required: false,
+    description: 'Search in content (partial match, case-insensitive)',
+  })
+  @IsOptional()
+  @IsString()
+  content?: string;
+
+  @ApiProperty({
+    example: 'professioneel',
+    required: false,
+    description: 'Search in learning outcomes (partial match, case-insensitive)',
+  })
+  @IsOptional()
+  @IsString()
+  learningOutcomes?: string;
+
+  @ApiProperty({
+    example: '58',
+    required: false,
+    description: 'Filter by contact ID (exact match)',
+  })
+  @IsOptional()
+  @IsString()
+  contactId?: string;
 
   @ApiProperty({
     example: true,

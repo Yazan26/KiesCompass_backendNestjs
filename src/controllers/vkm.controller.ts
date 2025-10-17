@@ -47,12 +47,18 @@ export class VkmController {
   @Get()
   @ApiOperation({
     summary: 'Get all VKMs',
-    description: 'Retrieve all VKM modules with optional filtering',
+    description: 'Retrieve all VKM modules with optional filtering. Text fields support partial matching (case-insensitive).',
   })
-  @ApiQuery({ name: 'location', required: false, example: 'Den Bosch' })
-  @ApiQuery({ name: 'level', required: false, example: 'NLQF5' })
-  @ApiQuery({ name: 'studyCredit', required: false, example: 15, type: Number })
-  @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiQuery({ name: 'name', required: false, example: 'learning', description: 'Filter by name (partial match)' })
+  @ApiQuery({ name: 'location', required: false, example: 'Den Bosch', description: 'Filter by location (partial match)' })
+  @ApiQuery({ name: 'level', required: false, example: 'NLQF5', description: 'Filter by education level (exact match)' })
+  @ApiQuery({ name: 'studyCredit', required: false, example: 15, type: Number, description: 'Filter by study credits (exact match)' })
+  @ApiQuery({ name: 'shortDescription', required: false, example: 'verpleegkunde', description: 'Search in short description (partial match)' })
+  @ApiQuery({ name: 'description', required: false, example: 'stage', description: 'Search in description (partial match)' })
+  @ApiQuery({ name: 'content', required: false, example: 'student', description: 'Search in content (partial match)' })
+  @ApiQuery({ name: 'learningOutcomes', required: false, example: 'professioneel', description: 'Search in learning outcomes (partial match)' })
+  @ApiQuery({ name: 'contactId', required: false, example: '58', description: 'Filter by contact ID (exact match)' })
+  @ApiQuery({ name: 'isActive', required: false, type: Boolean, description: 'Filter by active status' })
   @ApiResponse({
     status: 200,
     description: 'List of VKMs retrieved successfully',

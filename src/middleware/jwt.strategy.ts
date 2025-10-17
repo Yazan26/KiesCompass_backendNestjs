@@ -21,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: string; username: string; email: string }) {
+  async validate(payload: { sub: string; username: string; email: string; role?: string }) {
     if (!payload.sub || !payload.username || !payload.email) {
       throw new UnauthorizedException('Invalid token payload');
     }
@@ -30,6 +30,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.authService.validateUser(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+
+    // Attach role from token to the returned user object if available
+    if (payload.role) {
+      (user as any).role = payload.role;
     }
 
     return user;
