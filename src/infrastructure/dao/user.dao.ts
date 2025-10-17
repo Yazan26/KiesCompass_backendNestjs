@@ -34,14 +34,26 @@ export class UserDao {
     return this.userModel.findById(id).lean().exec();
   }
 
+  async findByFirstandLastname(firstname: string, lastname: string): Promise<any | null> {
+    return this.userModel
+      .findOne({ firstname, lastname })
+      .collation({ locale: 'en', strength: 2 })
+      .lean()
+      .exec();
+  }
+
   async create(
     username: string,
     email: string,
+    firstname: string,
+    lastname: string,
     passwordHash: string,
   ): Promise<any> {
     const user = await this.userModel.create({
       username,
       email: email.toLowerCase(),
+      firstname,
+      lastname,
       passwordHash,
     });
     return user.toObject();
@@ -91,5 +103,34 @@ export class UserDao {
       return [];
     }
     return user.favoriteVkmIds?.map((id) => id.toString()) || [];
+  }
+
+  /**
+   * Search users by username, email, firstname or lastname.
+   * Returns paginated results and total count.
+   */
+  async search(query?: string, page = 1, limit = 20): Promise<{ results: any[]; total: number }> {
+    const filter: any = {};
+
+    if (query && query.trim().length > 0) {
+      const q = query.trim();
+      // Use case-insensitive regex search across multiple fields
+      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [
+        { username: { $regex: regex } },
+        { email: { $regex: regex } },
+        { firstname: { $regex: regex } },
+        { lastname: { $regex: regex } },
+      ];
+    }
+
+    const skip = Math.max(0, page - 1) * limit;
+
+    const [results, total] = await Promise.all([
+      this.userModel.find(filter).collation({ locale: 'en', strength: 2 }).skip(skip).limit(limit).lean().exec(),
+      this.userModel.countDocuments(filter).exec(),
+    ]);
+
+    return { results, total };
   }
 }

@@ -1,4 +1,5 @@
 import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
+import { Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -13,6 +14,7 @@ import {
   UserResponseDto,
 } from '../util/dtos/auth.dto';
 import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
+import { AdminGuard } from '../middleware/admin.guard';
 import { CurrentUser } from '../util/decorators/current-user.decorator';
 
 /**
@@ -49,6 +51,10 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+
+
+
+
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -63,5 +69,19 @@ export class AuthController {
     @CurrentUser() user: { userId: string },
   ): Promise<UserResponseDto> {
     return this.authService.getUserProfile(user.userId);
+  }
+
+  @Get('search')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: search users' })
+  async searchUsers(
+    @Query('q') q?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const p = page ? Math.max(1, parseInt(page, 10) || 1) : 1;
+    const l = limit ? Math.max(1, parseInt(limit, 10) || 20) : 20;
+    return this.authService.searchUsers(q, p, l);
   }
 }

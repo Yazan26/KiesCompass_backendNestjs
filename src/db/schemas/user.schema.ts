@@ -15,6 +15,12 @@ export class UserDocument extends Document {
   @Prop({ required: true })
   passwordHash: string;
 
+  @Prop({ required: true })
+  firstname: string;
+
+  @Prop({ required: true })
+  lastname: string;
+
   @Prop({ required: true, default: 'student' })
   role: 'student' | 'admin';
 

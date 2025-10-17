@@ -32,6 +32,8 @@ export class AuthService {
       id: user._id.toString(),
       username: user.username,
       email: user.email,
+      firstname: user.firstname,
+      lastname: user.lastname,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -50,12 +52,14 @@ export class AuthService {
    * Register a new user
    */
   async register(dto: RegisterDto): Promise<UserResponseDto> {
-    await this.ensureUniqueCredentials(dto.username, dto.email);
+    await this.ensureUniqueCredentials(dto.username, dto.email,);
     const passwordHash = await this.passwordService.hash(dto.password);
 
     const user = await this.userDao.create(
       dto.username,
       dto.email,
+      dto.firstname,
+      dto.lastname,
       passwordHash,
     );
     return AuthService.toUserResponse(user as LeanUser);
@@ -87,6 +91,21 @@ export class AuthService {
     const access_token = await this.jwtService.generateToken(payload);
 
     return { access_token };
+  }
+
+  async findByFirstandLastname(firstname: string, lastname: string): Promise<any | null> {
+    return this.userDao.findByFirstandLastname(firstname, lastname);
+  }
+
+  /**
+   * Admin-only: Search users by query across username, email, firstname, lastname.
+   */
+  async searchUsers(query?: string, page = 1, limit = 20): Promise<{ results: UserResponseDto[]; total: number }> {
+    const { results, total } = await this.userDao.search(query, page, limit);
+    return {
+      results: results.map((u: any) => AuthService.toUserResponse(u as LeanUser)),
+      total,
+    };
   }
 
   /**
@@ -143,6 +162,8 @@ type LeanUser = {
   _id: { toString(): string };
   username: string;
   email: string;
+  firstname: string;
+  lastname: string;
   passwordHash: string;
   createdAt: Date;
   updatedAt: Date;
