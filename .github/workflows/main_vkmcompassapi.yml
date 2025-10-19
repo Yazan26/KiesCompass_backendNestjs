@@ -24,10 +24,14 @@ jobs:
           node-version: '22.x'
 
       - name: npm install, build, and test
+        env:
+          # Provide a connection string for tests from GitHub Secrets
+          # Create a repository secret named TEST_CONNECTION_STRING with your DB connection
+          TEST_CONNECTION_STRING: ${{ secrets.TEST_CONNECTION_STRING }}
         run: |
           npm install
           npm run build --if-present
-            npm run test:e2e --if-present || true
+          npm run test:e2e --if-present || true
           
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -62,4 +66,7 @@ jobs:
           app-name: 'VKMCompassAPI'
           slot-name: 'Production'
           package: .
+        env:
+          # Also pass the connection string to the deployment action if needed at deploy time
+          CONNECTION_STRING: ${{ secrets.TEST_CONNECTION_STRING }}
           
