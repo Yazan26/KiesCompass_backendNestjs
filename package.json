@@ -18,7 +18,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate:vkm": "ts-node -r tsconfig-paths/register src/scripts/migrate-vkm.ts",
-    "rebuild-indexes": "ts-node -r tsconfig-paths/register src/scripts/rebuild-indexes.ts"
+    "rebuild-indexes": "ts-node -r tsconfig-paths/register src/scripts/rebuild-indexes.ts",
+    "test:e2e:cov": "jest --config ./test/jest-e2e.json --coverage"
   },
   "engines": {
     "npm": ">=10.0.0",
